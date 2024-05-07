@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { setUser } from '../../walletstore/userSlice';
+import { useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { setUser } from '../../walletstore/userSlice'
+import ProfileModal from '../ProfileModal/ProfileModal'
+import axios from 'axios'
 
 export default function Homepage() {
-  const [showBalance, setShowBalance] = useState(false);
-  const user = useSelector((state) => state.user.user);
+  const [showBalance, setShowBalance] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const user = useSelector((state) => state.user.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -14,8 +17,31 @@ export default function Homepage() {
   };
 
   function showProfile() {
-    //profile module goes here
+    setShowProfileModal(true)
   }
+
+  function closeProfile() {
+    setShowProfileModal(false)
+  };
+
+  const saveProfileChanges = (newProfileData) => {
+    try {
+      axios.patch(`http://localhost:5000/editprofile/${user._id}`, {
+      name: newProfileData.name,
+      address: newProfileData.address,
+      cnic: newProfileData.cnic,
+      contact: newProfileData.contact
+    }).then((res)=>{
+      debugger
+        dispatch(setUser(res.data.user))
+      }).catch((error)=>{
+        console.log(error)
+      })
+    } catch (error) {
+      console.log(error)
+    }
+    setShowProfileModal(false)
+  };
 
   function logout() {
     localStorage.removeItem('token')
@@ -57,6 +83,13 @@ export default function Homepage() {
             Logout
           </button>
         </div>
+        {showProfileModal && (
+          <ProfileModal
+            user={user}
+            onClose={closeProfile}
+            onSave={saveProfileChanges}
+          />
+        )}
       </div>
     </div>
   );
