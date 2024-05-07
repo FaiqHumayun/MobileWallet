@@ -4,6 +4,7 @@ const { MESSAGES } = require('../constants/api.constant')
 const jwt = require('jsonwebtoken')
 const { StatusCodes } = require('http-status-codes')
 const bcrypt = require('bcrypt')
+const { ObjectId } = require('mongodb')
 
 exports.signup = async (req, res) => {
   try {
@@ -89,42 +90,28 @@ exports.login = async (req, res) => {
   }
 }
 
-exports.logout = async (req, res) => {
+exports.editProfile = async (req, res) => {
   try {
-    const { email, password } = req.body
-    const user = await User.findOne({ email: email })
-    if (email && password) {
-      if (user) {
-        const passwordMatch = await bcrypt.compare(password, user.password)
-        if (user.email === email && passwordMatch) {
-          const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-            expiresIn: '5d',
-          })
-          res.send({
-            status: MESSAGES.SUCCESS,
-            message: MESSAGES.LOGIN,
-            token: token,
-            user,
-          })
-        } else {
-          res.send({
-            status: MESSAGES.FAILED,
-            message: MESSAGES.INVALID,
-          })
-        }
-      } else {
-        res.send({
-          status: MESSAGES.FAILED,
-          message: MESSAGES.NOT_REGISTERED,
-        })
-      }
+    const id = req.params.user_id
+    let user = await User.find(ObjectId(id))
+    const { name, cnic, contact, address } = req.body
+    if (user) {
+      var myquery = { _id: ObjectId(id) };
+      var newvalues = { $set: {name: name, address: address, contact: contact, cnic: cnic } };
+      User.updateOne(myquery, newvalues, function(err, result) {
+        if (err) throw err;
+        User.findOne(ObjectId(id), function(err, user) {
+          if (err) {
+              return res.status(500).json({ status: MESSAGES.ERROR, message: err.message });
+          }
+          res.status(201).json({ status: MESSAGES.SUCCESS, message: MESSAGES.UPDATED, user });
+      })})
     } else {
       res.send({
         status: MESSAGES.FAILED,
-        message: MESSAGES.REQUIRED_ALL_FIELDS,
       })
     }
   } catch (error) {
-    res.send({ status: MESSAGES.FAILED, message: error.message })
+    res.status(404).json({ message: error.message })
   }
 }
