@@ -7,6 +7,7 @@ import { setFriends } from '../../walletstore/friendsSlice'
 import ProfileModal from '../ProfileModal/ProfileModal'
 import TransactionModal from '../TransactionModal/TransactionModal'
 import FriendsModal from '../FriendsModal/FriendsModal'
+import HistoryModal from '../HistoryModal/HistoryModal'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -16,6 +17,7 @@ export default function Homepage() {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showTransactionModal, setShowTransactionModal] = useState(false)
   const [showFriendsModal, setShowfriendsModal] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [emailForTransaction, setEmailForTransaction] = useState('')
   const [contactForTransaction, setContactForTransaction] = useState('')
   const user = useSelector((state) => state.user.user)
@@ -34,6 +36,10 @@ export default function Homepage() {
 
   function showFriends() {
     setShowfriendsModal(!showFriendsModal)
+  }
+
+  function showHistory() {
+    setShowHistoryModal(!showHistoryModal)
   }
 
   function makeATransaction() {
@@ -180,6 +186,14 @@ export default function Homepage() {
         <div className='mt-8'>
           <button
             className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
+            onClick={showHistory}
+          >
+            History
+          </button>
+        </div>
+        <div className='mt-8'>
+          <button
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
             onClick={logout}
           >
             Logout
@@ -206,6 +220,11 @@ export default function Homepage() {
             onFriendClick={applyForTransaction}
             onClose={showFriends}
             onSave={addFriend}
+          />
+        )}
+        {showHistoryModal && (
+          <HistoryModal
+            onClose={showHistory}
           />
         )}
         <ToastContainer containerId='toastContainer' />
