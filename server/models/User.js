@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const Wallet = require('./Wallet');
 
 const Schema = mongoose.Schema
 
@@ -46,6 +47,14 @@ userSchema.pre('save', async function (next) {
   this.password = hash
   next()
 })
+
+userSchema.post('save', async function (doc) {
+  try {
+    await Wallet.create({ user: doc._id });
+  } catch (error) {
+    console.error('Error creating wallet:', error);
+  }
+});
 
 userSchema.methods.isValidPassword = async function (password) {
   const user = this

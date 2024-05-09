@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {  useDispatch } from 'react-redux'
 import { setUser } from '../../walletstore/userSlice'
+import { setWallet } from '../../walletstore/walletSlice'
 import { toast } from 'react-toastify'
 
 export default function Login() {
@@ -38,6 +39,7 @@ export default function Login() {
         if (res.data.token){
           localStorage.setItem('token', res.data.token)
           dispatch(setUser(res.data.user))
+          dispatch(setWallet(res.data.wallet))
           navigate('/')
         }
       }).catch((error)=>{

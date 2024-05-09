@@ -1,46 +1,46 @@
 import { useState } from 'react'
 
-export default function ProfileModal(props) {
-  const [editedName, setEditedName] = useState(props.user.name)
-  const [editedAddress, setEditedAddress] = useState(props.user.address)
-  const [editedContact, setEditedContact] = useState(props.user.contact)
-  const [editedCnic, setEditedCnic] = useState(props.user.cnic)
+export default function TransactionModal(props) {
+  const [receiverEmail, setReceiverEmail] = useState('')
+  const [receiverContact, setReceiverContact] = useState('')
+  const [amount, setAmount] = useState(0)
+  const [purpose, setPurpose] = useState('')
 
   const handleSave = () => {
-    props.onSave({ name: editedName, address: editedAddress, contact: editedContact, cnic: editedCnic });
+    props.onSave({ email: receiverEmail, contact: receiverContact, amount: amount, purpose: purpose });
   };
 
   return (
     <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'>
       <div className='bg-white p-6 rounded-lg w-80'>
-        <h2 className='text-xl font-bold mb-4'>Edit Profile</h2>
+        <h2 className='text-xl font-bold mb-4'>Transfer</h2>
         <input
           type='text'
           className='block w-full border-gray-300 rounded-md mb-2 p-2'
-          placeholder='Name'
-          value={editedName}
-          onChange={(e) => setEditedName(e.target.value)}
+          placeholder='Receiver Email'
+          value={receiverEmail}
+          onChange={(e) => setReceiverEmail(e.target.value)}
         />
         <input
           type='text'
           className='block w-full border-gray-300 rounded-md mb-2 p-2'
-          placeholder='Contact'
-          value={editedContact}
-          onChange={(e) => setEditedContact(e.target.value)}
+          placeholder='Receiver Contact'
+          value={receiverContact}
+          onChange={(e) => setReceiverContact(e.target.value)}
+        />
+        <input
+          type='number'
+          className='block w-full border-gray-300 rounded-md mb-4 p-2'
+          placeholder='Amount'
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
         />
         <input
           type='text'
           className='block w-full border-gray-300 rounded-md mb-4 p-2'
-          placeholder='Address'
-          value={editedAddress}
-          onChange={(e) => setEditedAddress(e.target.value)}
-        />
-        <input
-          type='text'
-          className='block w-full border-gray-300 rounded-md mb-4 p-2'
-          placeholder='CNIC'
-          value={editedCnic}
-          onChange={(e) => setEditedCnic(e.target.value)}
+          placeholder='Purpose of transfer'
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
         />
         <div className='flex justify-between'>
           <button

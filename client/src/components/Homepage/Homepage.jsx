@@ -2,82 +2,131 @@ import { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { setUser } from '../../walletstore/userSlice'
+import { setWallet } from '../../walletstore/walletSlice'
 import ProfileModal from '../ProfileModal/ProfileModal'
+import TransactionModal from '../TransactionModal/TransactionModal'
 import axios from 'axios'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Homepage() {
   const [showBalance, setShowBalance] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showTransactionModal, setShowTransactionModal] = useState(false)
   const user = useSelector((state) => state.user.user)
+  const wallet = useSelector((state) => state.wallet.wallet)
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
   function toggleBalance() {
-    setShowBalance(!showBalance);
-  };
-
-  function showProfile() {
-    setShowProfileModal(true)
+    setShowBalance(!showBalance)
   }
 
-  function closeProfile() {
-    setShowProfileModal(false)
+  function showProfile() {
+    setShowProfileModal(!showProfileModal)
+  }
+
+  function makeATransaction() {
+    setShowTransactionModal(!showTransactionModal)
+  }
+
+  const showToastMessage = (message) => {
+    toast.success(message)
   };
 
   const saveProfileChanges = (newProfileData) => {
     try {
-      axios.patch(`http://localhost:5000/editprofile/${user._id}`, {
-      name: newProfileData.name,
-      address: newProfileData.address,
-      cnic: newProfileData.cnic,
-      contact: newProfileData.contact
-    }).then((res)=>{
-      debugger
-        dispatch(setUser(res.data.user))
-      }).catch((error)=>{
-        console.log(error)
-      })
+      axios
+        .patch(`http://localhost:5000/editprofile/${user._id}`, {
+          name: newProfileData.name,
+          address: newProfileData.address,
+          cnic: newProfileData.cnic,
+          contact: newProfileData.contact,
+        })
+        .then((res) => {
+          dispatch(setUser(res.data.user))
+        })
+        .catch((error) => {
+          console.log(error)
+        })
     } catch (error) {
       console.log(error)
     }
     setShowProfileModal(false)
-  };
+  }
+
+  const processTransaction = async (transactionData) => {
+    console.log(localStorage.getItem('token'))
+    try {
+      const res = await axios
+        .post(
+          `http://localhost:5000/transactions`,
+          {
+            receiver_email: transactionData.email,
+            receiver_contact: transactionData.contact,
+            amount: parseInt(transactionData.amount),
+            purpose: transactionData.purpose,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        )
+        if (res) {
+          if(res.data.wallet) { dispatch(setWallet(res.data.wallet)) }
+          showToastMessage(res.data.message)
+        }
+    } catch (error) {
+      console.log(error)
+    }
+    setShowTransactionModal(false)
+  }
 
   function logout() {
     localStorage.removeItem('token')
     dispatch(setUser({}))
+    dispatch(setWallet({}))
     navigate('/')
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-4">Home</h1>
-        <p className="text-lg">Welcome, {user?.name}!</p>
-        <div className="mt-4">
+    <div className='container mx-auto p-4'>
+      <div className='text-center'>
+        <h1 className='text-3xl font-bold mb-4'>Home</h1>
+        <p className='text-lg'>Welcome, {user?.name}!</p>
+        <div className='mt-4'>
           <button
             onClick={toggleBalance}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
           >
             {showBalance ? 'Hide Balance' : 'Show Balance'}
           </button>
           {showBalance && (
-            <p className="mt-2">
-              Your current wallet balance is: Rs.100
+            <p className='mt-2'>
+              Your current wallet balance is: {wallet?.balance}
             </p>
           )}
         </div>
-        <div className="mt-8">
+        <div className='mt-8'>
           <button
-            className="bg-gray-800 text-white font-bold py-2 px-4 rounded"
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
             onClick={showProfile}
           >
             Profile
           </button>
         </div>
-        <div className="mt-8">
+        <div className='mt-8'>
           <button
-            className="bg-gray-800 text-white font-bold py-2 px-4 rounded"
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
+            onClick={makeATransaction}
+          >
+            Transfer
+          </button>
+        </div>
+        <div className='mt-8'>
+          <button
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
             onClick={logout}
           >
             Logout
@@ -86,11 +135,18 @@ export default function Homepage() {
         {showProfileModal && (
           <ProfileModal
             user={user}
-            onClose={closeProfile}
+            onClose={showProfile}
             onSave={saveProfileChanges}
           />
         )}
+        {showTransactionModal && (
+          <TransactionModal
+            onClose={makeATransaction}
+            onSave={processTransaction}
+          />
+        )}
+        <ToastContainer containerId="toastContainer"/>
       </div>
     </div>
-  );
+  )
 }
