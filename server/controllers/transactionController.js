@@ -90,7 +90,7 @@ exports.createtransaction = async (req, res) => {
 
         res.status(StatusCodes.CREATED).json({
           message: 'Transaction completed successfully.',
-          wallet
+          wallet,
         })
       }
     })
@@ -100,4 +100,13 @@ exports.createtransaction = async (req, res) => {
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: 'Request not completed.' })
   }
+}
+
+exports.fetchHistory = async (req, res) => {
+  const user = await User.findById(ObjectId(req.userId))
+
+  const outgoingTransfers = await Transaction.find({ sender: user }).exec()
+  const incomingTransfers = await Transaction.find({ receiver: user }).exec()
+
+  res.status(StatusCodes.OK).json({ outgoingTransfers, incomingTransfers})
 }
