@@ -1,12 +1,16 @@
-import React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
+import * as Yup from 'yup'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'
+import { setUser } from '../../walletstore/userSlice'
+import { setWallet } from '../../walletstore/walletSlice'
+import { useDispatch } from 'react-redux'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const initialValues = {
     name: '',
@@ -51,6 +55,8 @@ export default function Signup() {
       }).then((res)=>{
         if (res.data.token){
           localStorage.setItem('token', res.data.token)
+          dispatch(setUser(res.data.user))
+          dispatch(setWallet(res.data.wallet))
           navigate('/')
         }
       }).catch((error)=>{

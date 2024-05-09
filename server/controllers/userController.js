@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const Wallet = require('../models/Wallet')
 require('dotenv').config()
 const { MESSAGES } = require('../constants/api.constant')
 const jwt = require('jsonwebtoken')
@@ -24,6 +25,7 @@ exports.signup = async (req, res) => {
             role,
             contact,
           })
+          const wallet = await Wallet.findOne({ user: user.id })
           if (user) {
             const token = jwt.sign({ user: user }, process.env.JWT_SECRET, {
               expiresIn: MESSAGES.EXPIRE_IN,
@@ -33,6 +35,7 @@ exports.signup = async (req, res) => {
               message: MESSAGES.REGISTER,
               token: token,
               user,
+              wallet,
             })
           }
         } catch (error) {
@@ -54,6 +57,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body
     const user = await User.findOne({ email: email })
+    const wallet = await Wallet.findOne({ user: user.id })
     if (email && password) {
       if (user) {
         const passwordMatch = await bcrypt.compare(password, user.password)
@@ -66,6 +70,7 @@ exports.login = async (req, res) => {
             message: MESSAGES.LOGIN,
             token: token,
             user,
+            wallet,
           })
         } else {
           res.send({
@@ -96,16 +101,23 @@ exports.editProfile = async (req, res) => {
     let user = await User.find(ObjectId(id))
     const { name, cnic, contact, address } = req.body
     if (user) {
-      var myquery = { _id: ObjectId(id) };
-      var newvalues = { $set: {name: name, address: address, contact: contact, cnic: cnic } };
-      User.updateOne(myquery, newvalues, function(err, result) {
-        if (err) throw err;
-        User.findOne(ObjectId(id), function(err, user) {
+      var myquery = { _id: ObjectId(id) }
+      var newvalues = {
+        $set: { name: name, address: address, contact: contact, cnic: cnic },
+      }
+      User.updateOne(myquery, newvalues, function (err, result) {
+        if (err) throw err
+        User.findOne(ObjectId(id), function (err, user) {
           if (err) {
-              return res.status(500).json({ status: MESSAGES.ERROR, message: err.message });
+            return res
+              .status(500)
+              .json({ status: MESSAGES.ERROR, message: err.message })
           }
-          res.status(201).json({ status: MESSAGES.SUCCESS, message: MESSAGES.UPDATED, user });
-      })})
+          res
+            .status(201)
+            .json({ status: MESSAGES.SUCCESS, message: MESSAGES.UPDATED, user })
+        })
+      })
     } else {
       res.send({
         status: MESSAGES.FAILED,
