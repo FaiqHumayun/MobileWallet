@@ -3,18 +3,24 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { setUser } from '../../walletstore/userSlice'
 import { setWallet } from '../../walletstore/walletSlice'
+import { setFriends } from '../../walletstore/friendsSlice'
 import ProfileModal from '../ProfileModal/ProfileModal'
 import TransactionModal from '../TransactionModal/TransactionModal'
+import FriendsModal from '../FriendsModal/FriendsModal'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'
 
 export default function Homepage() {
   const [showBalance, setShowBalance] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showTransactionModal, setShowTransactionModal] = useState(false)
+  const [showFriendsModal, setShowfriendsModal] = useState(false)
+  const [emailForTransaction, setEmailForTransaction] = useState('')
+  const [contactForTransaction, setContactForTransaction] = useState('')
   const user = useSelector((state) => state.user.user)
   const wallet = useSelector((state) => state.wallet.wallet)
+  const friends = useSelector((state) => state.friends.friends)
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -26,13 +32,17 @@ export default function Homepage() {
     setShowProfileModal(!showProfileModal)
   }
 
+  function showFriends() {
+    setShowfriendsModal(!showFriendsModal)
+  }
+
   function makeATransaction() {
     setShowTransactionModal(!showTransactionModal)
   }
 
   const showToastMessage = (message) => {
     toast.success(message)
-  };
+  }
 
   const saveProfileChanges = (newProfileData) => {
     try {
@@ -56,37 +66,72 @@ export default function Homepage() {
   }
 
   const processTransaction = async (transactionData) => {
-    console.log(localStorage.getItem('token'))
     try {
-      const res = await axios
-        .post(
-          `http://localhost:5000/transactions`,
-          {
-            receiver_email: transactionData.email,
-            receiver_contact: transactionData.contact,
-            amount: parseInt(transactionData.amount),
-            purpose: transactionData.purpose,
+      const res = await axios.post(
+        `http://localhost:5000/transactions`,
+        {
+          receiver_email: transactionData.email,
+          receiver_contact: transactionData.contact,
+          amount: parseInt(transactionData.amount),
+          purpose: transactionData.purpose,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        )
-        if (res) {
-          if(res.data.wallet) { dispatch(setWallet(res.data.wallet)) }
-          showToastMessage(res.data.message)
         }
+      )
+      if (res) {
+        if (res.data.wallet) {
+          dispatch(setWallet(res.data.wallet))
+        }
+        showToastMessage(res.data.message)
+      }
     } catch (error) {
       console.log(error)
     }
     setShowTransactionModal(false)
   }
 
+  const addFriend = async (friendData) => {
+    try {
+      const res = await axios.post(
+        `http://localhost:5000/add_friend`,
+        {
+          email: friendData.email,
+          contact: friendData.contact,
+          nickname: friendData.nickname,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      )
+      if (res) {
+        if (res.data.friends) {
+          dispatch(setFriends(res.data.friends))
+        }
+        showToastMessage(res.data.message)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+    setShowfriendsModal(false)
+  }
+
+  const applyForTransaction = async (friendData) => {
+    setEmailForTransaction(friendData.email)
+    setContactForTransaction(friendData.contact)
+    showFriends(!showFriendsModal)
+    setShowTransactionModal(!showTransactionModal)
+  }
+
   function logout() {
     localStorage.removeItem('token')
     dispatch(setUser({}))
     dispatch(setWallet({}))
+    dispatch(setFriends([]))
     navigate('/')
   }
 
@@ -127,6 +172,14 @@ export default function Homepage() {
         <div className='mt-8'>
           <button
             className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
+            onClick={showFriends}
+          >
+            Friends
+          </button>
+        </div>
+        <div className='mt-8'>
+          <button
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
             onClick={logout}
           >
             Logout
@@ -141,11 +194,21 @@ export default function Homepage() {
         )}
         {showTransactionModal && (
           <TransactionModal
+            email={emailForTransaction}
+            contact={contactForTransaction}
             onClose={makeATransaction}
             onSave={processTransaction}
           />
         )}
-        <ToastContainer containerId="toastContainer"/>
+        {showFriendsModal && (
+          <FriendsModal
+            friends={friends}
+            onFriendClick={applyForTransaction}
+            onClose={showFriends}
+            onSave={addFriend}
+          />
+        )}
+        <ToastContainer containerId='toastContainer' />
       </div>
     </div>
   )

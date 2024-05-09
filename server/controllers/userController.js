@@ -1,5 +1,6 @@
 const User = require('../models/User')
 const Wallet = require('../models/Wallet')
+const Friends = require('../models/Friends')
 require('dotenv').config()
 const { MESSAGES } = require('../constants/api.constant')
 const jwt = require('jsonwebtoken')
@@ -26,6 +27,7 @@ exports.signup = async (req, res) => {
             contact,
           })
           const wallet = await Wallet.findOne({ user: user.id })
+          const friends = await Friends.find({ maker: user }).exec()
           if (user) {
             const token = jwt.sign({ user: user }, process.env.JWT_SECRET, {
               expiresIn: MESSAGES.EXPIRE_IN,
@@ -36,6 +38,7 @@ exports.signup = async (req, res) => {
               token: token,
               user,
               wallet,
+              friends
             })
           }
         } catch (error) {
@@ -58,6 +61,7 @@ exports.login = async (req, res) => {
     const { email, password } = req.body
     const user = await User.findOne({ email: email })
     const wallet = await Wallet.findOne({ user: user.id })
+    const friends = await Friends.find({ maker: user }).exec()
     if (email && password) {
       if (user) {
         const passwordMatch = await bcrypt.compare(password, user.password)
@@ -71,6 +75,7 @@ exports.login = async (req, res) => {
             token: token,
             user,
             wallet,
+            friends
           })
         } else {
           res.send({

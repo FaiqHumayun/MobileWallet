@@ -6,6 +6,7 @@ import axios from 'axios'
 import {  useDispatch } from 'react-redux'
 import { setUser } from '../../walletstore/userSlice'
 import { setWallet } from '../../walletstore/walletSlice'
+import { setFriends } from '../../walletstore/friendsSlice'
 import { toast } from 'react-toastify'
 
 export default function Login() {
@@ -40,6 +41,7 @@ export default function Login() {
           localStorage.setItem('token', res.data.token)
           dispatch(setUser(res.data.user))
           dispatch(setWallet(res.data.wallet))
+          dispatch(setFriends(res.data.friends))
           navigate('/')
         }
       }).catch((error)=>{

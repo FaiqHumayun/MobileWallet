@@ -1,8 +1,8 @@
 import { useState } from 'react'
 
 export default function TransactionModal(props) {
-  const [receiverEmail, setReceiverEmail] = useState('')
-  const [receiverContact, setReceiverContact] = useState('')
+  const [receiverEmail, setReceiverEmail] = useState(props.email)
+  const [receiverContact, setReceiverContact] = useState(props.contact)
   const [amount, setAmount] = useState(0)
   const [purpose, setPurpose] = useState('')
 
