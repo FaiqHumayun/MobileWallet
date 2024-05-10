@@ -103,10 +103,19 @@ exports.createtransaction = async (req, res) => {
 }
 
 exports.fetchHistory = async (req, res) => {
-  const user = await User.findById(ObjectId(req.userId))
+  console.log('Req: ', req)
+  let user = await User.findById(ObjectId(req.userId))
+
+  const { emailOrContact } = req.query
+
+  if (user.role === 'admin' && emailOrContact) {
+    user = await User.find({
+      $or: [{ email: emailOrContact }, { contact: emailOrContact }],
+    })
+  }
 
   const outgoingTransfers = await Transaction.find({ sender: user }).exec()
   const incomingTransfers = await Transaction.find({ receiver: user }).exec()
 
-  res.status(StatusCodes.OK).json({ outgoingTransfers, incomingTransfers})
+  res.status(StatusCodes.OK).json({ outgoingTransfers, incomingTransfers })
 }
