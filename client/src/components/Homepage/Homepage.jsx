@@ -8,6 +8,8 @@ import ProfileModal from '../ProfileModal/ProfileModal'
 import TransactionModal from '../TransactionModal/TransactionModal'
 import FriendsModal from '../FriendsModal/FriendsModal'
 import HistoryModal from '../HistoryModal/HistoryModal'
+import UserHistoryModal from '../HistoryModal/UserHistoryModal'
+import WalletModal from '../WalletModal/WalletModal'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -18,6 +20,8 @@ export default function Homepage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false)
   const [showFriendsModal, setShowfriendsModal] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [showUserHistoryModal, setShowUserHistoryModal] = useState(false)
+  const [showWalletModal, setShowWalletModal] = useState(false)
   const [emailForTransaction, setEmailForTransaction] = useState('')
   const [contactForTransaction, setContactForTransaction] = useState('')
   const user = useSelector((state) => state.user.user)
@@ -42,12 +46,20 @@ export default function Homepage() {
     setShowHistoryModal(!showHistoryModal)
   }
 
+  function showUserHistory() {
+    setShowUserHistoryModal(!showUserHistoryModal)
+  }
+
   function makeATransaction() {
     setShowTransactionModal(!showTransactionModal)
   }
 
   const showToastMessage = (message) => {
     toast.success(message)
+  }
+
+  function ShowWallet() {
+    setShowWalletModal(!showWalletModal)
   }
 
   const saveProfileChanges = (newProfileData) => {
@@ -194,6 +206,22 @@ export default function Homepage() {
         <div className='mt-8'>
           <button
             className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
+            onClick={showUserHistory}
+          >
+            See users transaction history
+          </button>
+        </div>
+        <div className='mt-8'>
+          <button
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
+            onClick={ShowWallet}
+          >
+            Add balance
+          </button>
+        </div>
+        <div className='mt-8'>
+          <button
+            className='bg-gray-800 text-white font-bold py-2 px-4 rounded'
             onClick={logout}
           >
             Logout
@@ -225,6 +253,16 @@ export default function Homepage() {
         {showHistoryModal && (
           <HistoryModal
             onClose={showHistory}
+          />
+        )}
+        {showUserHistoryModal && (
+          <UserHistoryModal
+            onClose={showUserHistory}
+          />
+        )}
+        {showWalletModal && (
+          <WalletModal
+            onClose={ShowWallet}
           />
         )}
         <ToastContainer containerId='toastContainer' />
